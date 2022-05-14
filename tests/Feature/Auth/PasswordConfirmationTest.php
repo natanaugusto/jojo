@@ -2,18 +2,20 @@
 
 use App\Models\User;
 
-test('confirm password screen can be rendered', function () {
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+
+test(description: 'confirm password screen can be rendered', closure: function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/confirm-password');
+    $response = $this->actingAs($user)->get(uri: '/confirm-password');
 
-    $response->assertStatus(200);
+    $response->assertStatus(status: SymfonyResponse::HTTP_OK);
 });
 
-test('password can be confirmed', function () {
+test(description: 'password can be confirmed', closure: function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/confirm-password', [
+    $response = $this->actingAs($user)->post(uri: '/confirm-password', data: [
         'password' => 'password',
     ]);
 
@@ -21,10 +23,10 @@ test('password can be confirmed', function () {
     $response->assertSessionHasNoErrors();
 });
 
-test('password is not confirmed with invalid password', function () {
+test(description: 'password is not confirmed with invalid password', closure: function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/confirm-password', [
+    $response = $this->actingAs($user)->post(uri: '/confirm-password', data: [
         'password' => 'wrong-password',
     ]);
 

@@ -6,17 +6,19 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 
-test('email verification screen can be rendered', function () {
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+
+test(description: 'email verification screen can be rendered', closure: function () {
     $user = User::factory()->create([
         'email_verified_at' => null,
     ]);
 
-    $response = $this->actingAs($user)->get('/verify-email');
+    $response = $this->actingAs($user)->get(uri: '/verify-email');
 
-    $response->assertStatus(200);
+    $response->assertStatus(status: SymfonyResponse::HTTP_OK);
 });
 
-test('email can be verified', function () {
+test(description: 'email can be verified', closure: function () {
     $user = User::factory()->create([
         'email_verified_at' => null,
     ]);
@@ -24,27 +26,27 @@ test('email can be verified', function () {
     Event::fake();
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1($user->email)]
+        name: 'verification.verify',
+        expiration: now()->addMinutes(value: 60),
+        parameters: ['id' => $user->id, 'hash' => sha1($user->email)]
     );
 
     $response = $this->actingAs($user)->get($verificationUrl);
 
-    Event::assertDispatched(Verified::class);
+    Event::assertDispatched(event: Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $response->assertRedirect(RouteServiceProvider::HOME.'?verified=1');
+    $response->assertRedirect(uri: config(key: 'app.frontend_url').RouteServiceProvider::HOME.'?verified=1');
 });
 
-test('email is not verified with invalid hash', function () {
+test(description: 'email is not verified with invalid hash', closure: function () {
     $user = User::factory()->create([
         'email_verified_at' => null,
     ]);
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1('wrong-email')]
+        name: 'verification.verify',
+        expiration: now()->addMinutes(value: 60),
+        parameters: ['id' => $user->id, 'hash' => sha1(string: 'wrong-email')]
     );
 
     $this->actingAs($user)->get($verificationUrl);

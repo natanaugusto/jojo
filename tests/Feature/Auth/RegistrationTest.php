@@ -1,15 +1,16 @@
 <?php
 
 use App\Providers\RouteServiceProvider;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-test('registration screen can be rendered', function () {
-    $response = $this->get('/register');
+test(description: 'registration screen can be rendered', closure: function () {
+    $response = $this->get(uri: '/register');
 
-    $response->assertStatus(200);
+    $response->assertStatus(status: SymfonyResponse::HTTP_OK);
 });
 
-test('new users can register', function () {
-    $response = $this->post('/register', [
+test(description: 'new users can register', closure: function () {
+    $response = $this->post(uri: '/register', data: [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
@@ -17,5 +18,17 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(RouteServiceProvider::HOME);
+    $response->assertRedirect(uri: RouteServiceProvider::HOME);
+});
+
+test(description: 'new users can register by API', closure: function () {
+    $response = $this->json(method: 'post', uri: '/register', data: [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertNoContent();
 });
